@@ -9,9 +9,6 @@ import org.apache.kafka.streams.scala.kstream.Consumed
 
 class KafkaSetup(private val server: String, private val port: String) {
 
-//  private val KafkaStringSerializer = "org.apache.kafka.common.serialization.StringSerializer"
-//  private val KafkaStringDeserializer = "org.apache.kafka.common.serialization.StringDeserializer"
-
   private implicit val stringSerde: Serde[String] = Serdes.String()
 
   private var stream: KafkaStreams = _

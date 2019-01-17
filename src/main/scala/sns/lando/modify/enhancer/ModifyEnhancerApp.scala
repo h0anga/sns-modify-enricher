@@ -7,7 +7,7 @@ object ModifyEnhancerApp extends App {
   private val kafkabrokerPort: String = Properties.envOrElse("KAFKA_BROKER_PORT", "9092")
 
   private val lluStreamMessagesTopic = "incoming.op.msgs"
-  private val modifyMessagesTopic = "modify.op.msgs"
+//  private val modifyMessagesTopic = "modify.op.msgs"
   private val enrichedModifyTopic = "enriched.modification.instructions"
 
   val kafkaSetup = new KafkaSetup(kafkabroker, kafkabrokerPort)

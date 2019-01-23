@@ -29,12 +29,12 @@ your minikube VM (its likely to be 192.168.99.1):
     ```
 4) Create and deploy a k8s pod with the application running within:
     ```
-    kubectl apply -f knitware-converter.yaml
+    kubectl apply -f modifier-enricher.yaml
     ```
 5) Check the pod status:
     ```
-    kubectl get pod sns-knitware-converter
-    kubectl describe pod sns-knitware-converter
+    kubectl get pod sns-modify-enricher
+    kubectl describe pod sns-modify-enricher
     ```
 
 You could now try running the E2E tests!

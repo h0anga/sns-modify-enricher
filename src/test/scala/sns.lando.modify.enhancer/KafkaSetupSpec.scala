@@ -1,6 +1,6 @@
 package sns.lando.modify.enhancer
 
-import java.util.Properties
+import java.util.{Properties, UUID}
 
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -27,18 +27,16 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
     settings
   }
 
-  private val kafkaMessageInValue = "inputMessage"
+  private val netstreamCorrelationId = UUID.randomUUID().toString
+
+  private val kafkaMessageInValue =
+    s"""
+      |{"netstreamCorrelationId":"${netstreamCorrelationId}"}
+    """.stripMargin
 
   private val expectedOutput =
-    """
-      |<?xml version="1.0" encoding="UTF-8"?>
-      |<switchServiceModificationInstruction switchServiceId="16" netstreamCorrelationId="33269793">
-      |  <features>
-      |    <callerDisplay active="true"/>
-      |    <ringBack active="true"/>
-      |    <chooseToRefuse active="true"/>
-      |  </features>
-      |</switchServiceModificationInstruction>
+    s"""
+      |{"netstreamCorrelationId":"${netstreamCorrelationId}"}
     """.stripMargin
 
   private def createTopologyToTest = {

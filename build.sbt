@@ -14,6 +14,7 @@ libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging"  % "3.5.0
 
 enablePlugins(JavaAppPackaging)
 enablePlugins(DockerPlugin)
-//dockerBaseImage := "openjdk:jre-alpine" // a smaller JVM base image
+enablePlugins(AshScriptPlugin)
+dockerBaseImage := "openjdk:8-jre-alpine"
 
 mainClass in Compile := Some("sns.lando.modify.enhancer.ModifyEnhancerApp")

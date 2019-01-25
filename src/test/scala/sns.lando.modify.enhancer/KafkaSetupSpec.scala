@@ -5,6 +5,7 @@ import java.util.{Properties, UUID}
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{Serde, Serdes}
+import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
 import org.apache.kafka.streams.test.ConsumerRecordFactory
 import org.apache.kafka.streams.{StreamsConfig, TopologyTestDriver}
 import org.scalatest._
@@ -24,6 +25,7 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
     settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, serverName + ":" + portNumber)
     settings.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
     settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
+    settings.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, classOf[LogAndContinueExceptionHandler])
     settings
   }
 
@@ -60,6 +62,22 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
     val outputValue = outputKafkaRecord.value()
 
     outputValue shouldEqual (expectedOutput)
+  }
+
+  it should "spit out poison pills" in {
+    val topology = createTopologyToTest
+    val topologyTestDriver = new TopologyTestDriver(topology, streamingConfig)
+
+    val keySerde: Serde[String] = Serdes.String
+    val valueSerde: Serde[String] = Serdes.String
+
+    val consumerRecordFactory: ConsumerRecordFactory[String, String] = new ConsumerRecordFactory[String, String](inputTopic, keySerde.serializer(), valueSerde.serializer())
+    val inputKafkaRecord: ConsumerRecord[Array[Byte], Array[Byte]] = consumerRecordFactory.create(inputTopic, kafkaMessageInKey, "poison!")
+    topologyTestDriver.pipeInput(inputKafkaRecord)
+
+    val outputKafkaRecord: ProducerRecord[String, String] = topologyTestDriver.readOutput(outputTopic, keySerde.deserializer(), valueSerde.deserializer())
+    if (outputKafkaRecord != null)
+      fail("Got a message from a poison pill")
   }
 
 }

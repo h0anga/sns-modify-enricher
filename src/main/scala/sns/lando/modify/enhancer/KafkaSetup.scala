@@ -45,7 +45,7 @@ class KafkaSetup(private val server: String, private val port: String) {
 
     val inputStream: KStream[String, String] = builder.stream(inputTopicName, Consumed.`with`(stringSerde, stringSerde))
 
-    val jsonValues: KStream[String, String] = inputStream.mapValues(line => new KnitwareConverter().getXmlFor(line))
+    val jsonValues: KStream[String, String] = inputStream.mapValues(line => new Enricher().enrich(line))
 
     val goodJsonValues: KStream[String, String] = jsonValues.filterNot(emptyStringPredicate)
 

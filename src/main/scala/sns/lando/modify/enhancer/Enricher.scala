@@ -5,10 +5,10 @@ import org.json4s.native.Serialization
 import org.json4s.native.Serialization.read
 import org.json4s.{Formats, NoTypeHints}
 
-class KnitwareConverter {
+class Enricher {
 
-  def getXmlFor(textLine: String): String = {
-    println(s"input: ${textLine}")
+  def enrich(textLine: String): String = {
+    println(s"input: $textLine")
     implicit val formats: Formats = Serialization.formats (NoTypeHints)
 
     val voiceFeatures = try {
@@ -17,10 +17,10 @@ class KnitwareConverter {
       case e: ParseException => return ""
     }
 
-    println(s"vf: ${voiceFeatures.netstreamCorrelationId}")
+    println(s"vf: ${voiceFeatures.orderId}")
 
-    return s"""
-              |{"netstreamCorrelationId":"${voiceFeatures.netstreamCorrelationId}"}
+    s"""
+              |{"orderId":"${voiceFeatures.orderId}"}
     """.stripMargin
   }
 }

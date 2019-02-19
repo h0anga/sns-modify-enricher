@@ -29,16 +29,16 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
     settings
   }
 
-  private val netstreamCorrelationId = UUID.randomUUID().toString
+  private val orderId = UUID.randomUUID().toString
 
   private val kafkaMessageInValue =
     s"""
-      |{"netstreamCorrelationId":"${netstreamCorrelationId}"}
+      |{"orderId":"$orderId"}
     """.stripMargin
 
   private val expectedOutput =
     s"""
-      |{"netstreamCorrelationId":"${netstreamCorrelationId}"}
+      |{"ordderId":"$orderId"}
     """.stripMargin
 
   private def createTopologyToTest = {

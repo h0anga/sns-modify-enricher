@@ -33,12 +33,12 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
 
   private val kafkaMessageInValue =
     s"""
-      |{"orderId":"$orderId"}
+      |{"modifyVoiceFeaturesInstruction":{"operatorId":"sky","orderId":"$orderId","serviceId":"31642339","operatorOrderId":"SogeaVoipModify_YHUORO","features":["CallerDisplay","RingBack","ChooseToRefuse"]}}
     """.stripMargin
 
   private val expectedOutput =
     s"""
-      |{"ordderId":"$orderId"}
+      |{"modifyVoiceFeaturesInstruction":{"operatorId":"sky","orderId":"$orderId","serviceId":"31642339","operatorOrderId":"SogeaVoipModify_YHUORO","features":["CallerDisplay","RingBack","ChooseToRefuse"]}}
     """.stripMargin
 
   private def createTopologyToTest = {
@@ -61,7 +61,7 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
     val outputKafkaRecord: ProducerRecord[String, String] = topologyTestDriver.readOutput(outputTopic, keySerde.deserializer(), valueSerde.deserializer())
     val outputValue = outputKafkaRecord.value()
 
-    outputValue shouldEqual (expectedOutput)
+    outputValue.trim shouldEqual (expectedOutput.trim)
   }
 
   it should "spit out poison pills" in {

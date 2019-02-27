@@ -18,7 +18,7 @@ class KafkaSetup(private val server: String, private val port: String) {
 
   private val voiceFeaturesParser = new VoiceFeaturesParser()
   private val serviceDetailsParser = new ServiceDetailsParser()
-  private val modifyVoiceFeaturesInstructionSerializer = new ModifyVoiceFeaturesInstructionSerializer()
+  private val modifyVoiceFeaturesInstructionSerializer = new EnrichedInstructionSerializer()
 
   val emptyStringPredicate: Predicate[_ >: String, _ >: String] = (_: String, value: String) => {
     value.isEmpty
@@ -70,7 +70,7 @@ class KafkaSetup(private val server: String, private val port: String) {
     val serviceDetailsSerde = new ServiceDetailsSerde()
     val joined = Joined.`with`(stringSerde, voiceFeaturesSerde, serviceDetailsSerde)
 
-    val joinedStream: KStream[String, ModifyVoiceFeaturesInstruction] =
+    val joinedStream: KStream[String, EnrichedInstruction] =
       voiceFeaturesStream.join(servicesStream,
         joiner,
         oneYearWindow,

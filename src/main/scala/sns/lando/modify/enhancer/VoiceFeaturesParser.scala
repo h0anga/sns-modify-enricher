@@ -21,4 +21,10 @@ class VoiceFeaturesParser {
 //    write(voiceFeatures)
 //    Option.apply(voiceFeatures)
   }
+
+  def parse(voiceFeatures: VoiceFeatures): String = {
+    implicit val formats: Formats = Serialization.formats (NoTypeHints)
+    println("Unparsing a Voicefeatures")
+    write(voiceFeatures)
+  }
 }

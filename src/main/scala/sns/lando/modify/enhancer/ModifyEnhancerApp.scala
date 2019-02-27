@@ -7,10 +7,11 @@ object ModifyEnhancerApp extends App {
   private val kafkabrokerPort: String = Properties.envOrElse("KAFKA_BROKER_PORT", "9092")
 
   private val modifyMessagesTopic = "modify.op.msgs"
+  private val servicesTopic = "services"
   private val enrichedModifyTopic = "enriched.modification.instructions"
 
   val kafkaSetup = new KafkaSetup(kafkabroker, kafkabrokerPort)
-  kafkaSetup.start(modifyMessagesTopic, enrichedModifyTopic)
+  kafkaSetup.start(modifyMessagesTopic, servicesTopic, enrichedModifyTopic)
 
   sys.ShutdownHookThread {
     kafkaSetup.shutDown()

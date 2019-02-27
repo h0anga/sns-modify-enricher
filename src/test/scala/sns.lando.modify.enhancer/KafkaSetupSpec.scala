@@ -16,9 +16,12 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
   private val portNumber = "portNumber"
 
   private val inputTopic = "topic-in"
+  private val servicesTopic = "topic-services"
   private val outputTopic = "topic-out"
 
   private val kafkaMessageInKey = "key"
+  private val kafkaServicesKey = "someOtherKey"
+
   private val streamingConfig = {
     val settings = new Properties
     settings.put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaApplicationId)
@@ -36,6 +39,8 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
       |{"modifyVoiceFeaturesInstruction":{"operatorId":"sky","orderId":"$orderId","serviceId":"31642339","operatorOrderId":"SogeaVoipModify_YHUORO","features":["CallerDisplay","RingBack","ChooseToRefuse"]}}
     """.stripMargin
 
+  private val kafkaServicesValue = s"""{"SERVICE_ID":31642339,"SERVICE_SPEC_CODE":"VoipService","DIRECTORY_NUMBER":"01202000095"}"""
+
   private val expectedOutput =
     s"""
       |{"modifyVoiceFeaturesInstruction":{"operatorId":"sky","orderId":"$orderId","serviceId":"31642339","operatorOrderId":"SogeaVoipModify_YHUORO","features":["CallerDisplay","RingBack","ChooseToRefuse"]}}
@@ -43,7 +48,7 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
 
   private def createTopologyToTest = {
     val kafkaSetup = new KafkaSetup(serverName, portNumber)
-    val topology = kafkaSetup.build(inputTopic, outputTopic)
+    val topology = kafkaSetup.build(inputTopic, servicesTopic, outputTopic)
     topology
   }
 
@@ -54,8 +59,10 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
     val keySerde: Serde[String] = Serdes.String
     val valueSerde: Serde[String] = Serdes.String
 
-    val consumerRecordFactory: ConsumerRecordFactory[String, String] = new ConsumerRecordFactory[String, String](inputTopic, keySerde.serializer(), valueSerde.serializer())
-    val inputKafkaRecord: ConsumerRecord[Array[Byte], Array[Byte]] = consumerRecordFactory.create(inputTopic, kafkaMessageInKey, kafkaMessageInValue)
+    val servicesConsumerRecordFactory: ConsumerRecordFactory[String, String] = new ConsumerRecordFactory[String, String](servicesTopic, keySerde.serializer(), valueSerde.serializer())
+    val servicesKafkaRecord: ConsumerRecord[Array[Byte], Array[Byte]] = servicesConsumerRecordFactory.create(servicesTopic, kafkaServicesKey, kafkaServicesValue)
+    val inputConsumerRecordFactory: ConsumerRecordFactory[String, String] = new ConsumerRecordFactory[String, String](inputTopic, keySerde.serializer(), valueSerde.serializer())
+    val inputKafkaRecord: ConsumerRecord[Array[Byte], Array[Byte]] = inputConsumerRecordFactory.create(inputTopic, kafkaMessageInKey, kafkaMessageInValue)
     topologyTestDriver.pipeInput(inputKafkaRecord)
 
     val outputKafkaRecord: ProducerRecord[String, String] = topologyTestDriver.readOutput(outputTopic, keySerde.deserializer(), valueSerde.deserializer())

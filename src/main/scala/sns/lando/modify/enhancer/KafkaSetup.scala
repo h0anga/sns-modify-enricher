@@ -74,12 +74,13 @@ class KafkaSetup(private val server: String, private val port: String) {
       voiceFeaturesStream.join(servicesStream,
         joiner,
         oneYearWindow,
-        joined
-      )
+        joined)
 
     println("Created the Joined stream")
 
-    val outputStream: KStream[String, String] = joinedStream.mapValues(mvfi => modifyVoiceFeaturesInstructionSerializer.serialize(mvfi))
+    val keyedOutputStream: KStream[String, EnrichedInstruction] = joinedStream.selectKey((k, v) => v.orderId)
+
+    val outputStream: KStream[String, String] = keyedOutputStream.mapValues(mvfi => modifyVoiceFeaturesInstructionSerializer.serialize(mvfi))
     println("Built the output stream")
 
     outputStream.to(outputTopicName)
@@ -88,22 +89,16 @@ class KafkaSetup(private val server: String, private val port: String) {
   }
 
   def getVoiceFeaturesStream(voiceFeaturesTopicName: String, builder: StreamsBuilder): KStream[String, VoiceFeatures] = {
-    //    val builder = new StreamsBuilder
     val bareInputStream: KStream[String, String] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, stringSerde))
     val validatedInputStream: KStream[String, String] = bareInputStream.filterNot(emptyStringPredicate)
     val optionalFeaturesStream: KStream[String, VoiceFeatures] = validatedInputStream.mapValues(line => voiceFeaturesParser.parse(line))
-    //      .filterNot(emptyVoiceFeaturesPredicate)
-    //    val featuresStream: KStream[String, VoiceFeatures] = optionalFeaturesStream.mapValues(f => f.get)
     optionalFeaturesStream.selectKey((k, v) => v.modifyVoiceFeaturesInstruction.serviceId)
   }
 
   def getServicesStream(servicesTopicName: String, builder: StreamsBuilder): KStream[String, ServiceDetails] = {
-    //    val builder = new StreamsBuilder
     val bareInputStream: KStream[String, String] = builder.stream(servicesTopicName, Consumed.`with`(stringSerde, stringSerde))
     val validatedInputStream: KStream[String, String] = bareInputStream.filterNot(emptyStringPredicate)
     val optionalServicesStream: KStream[String, ServiceDetails] = validatedInputStream.mapValues(line => serviceDetailsParser.parse(line))
-    //      .filterNot(emptyServiceDetailsPredicate)
-    //    val servicesStream: KStream[String, ServiceDetails] = optionalServicesStream.mapValues(s => s.get)
     optionalServicesStream.selectKey((k, v) => v.serviceId)
   }
 }

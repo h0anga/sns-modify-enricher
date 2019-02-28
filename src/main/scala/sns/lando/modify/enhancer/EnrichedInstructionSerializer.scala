@@ -9,7 +9,6 @@ class EnrichedInstructionSerializer {
   def serialize(instruction: EnrichedInstruction) : String = {
     println("Called the MVFI Serializer")
     implicit val formats: Formats = Serialization.formats (NoTypeHints)
-
-    write(instruction)
+    s"""{"enrichedInstruction":${write(instruction)}}"""
   }
 }

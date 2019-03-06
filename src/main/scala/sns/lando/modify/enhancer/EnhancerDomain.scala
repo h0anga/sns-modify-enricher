@@ -6,7 +6,11 @@ case class ModifyVoiceFeaturesMessage(operatorId: String,
                                       orderId: String,
                                       serviceId: String,
                                       operatorOrderId: String,
-                                      features: Seq[String])
+                                      features: Features)
+
+case class Features(FEATURE: Seq[Code])
+
+case class Code(CODE: String)
 
 case class ServiceDetails(serviceId: String, serviceSpecCode: String, directoryNumber: String)
 

@@ -2,16 +2,16 @@ package sns.lando.modify.enhancer
 
 import org.apache.kafka.streams.kstream.ValueJoiner
 
-class VoipServicesJoiner extends ValueJoiner[VoiceFeatures, ServiceDetails, EnrichedInstruction] {
+class VoipServicesJoiner extends ValueJoiner[ModifyVoiceFeaturesMessage, ServiceDetails, EnrichedInstruction] {
 
-  override def apply(voiceFeatures: VoiceFeatures, serviceDetails: ServiceDetails): EnrichedInstruction = {
+  override def apply(voiceFeatures: ModifyVoiceFeaturesMessage, serviceDetails: ServiceDetails): EnrichedInstruction = {
     println("Called the Joiner")
-    val instruction = EnrichedInstruction(voiceFeatures.modifyVoiceFeaturesInstruction.operatorId,
-      voiceFeatures.modifyVoiceFeaturesInstruction.orderId,
-      voiceFeatures.modifyVoiceFeaturesInstruction.serviceId,
+    val instruction = EnrichedInstruction(voiceFeatures.operatorId,
+      voiceFeatures.orderId,
+      voiceFeatures.serviceId,
       serviceDetails.directoryNumber,
-      voiceFeatures.modifyVoiceFeaturesInstruction.operatorOrderId,
-      voiceFeatures.modifyVoiceFeaturesInstruction.features)
+      voiceFeatures.operatorOrderId,
+      voiceFeatures.features)
 
     instruction
   }

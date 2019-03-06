@@ -24,7 +24,7 @@ class KafkaSetup(private val server: String, private val port: String) {
     value.isEmpty
   }
 
-  val emptyVoiceFeaturesPredicate: Predicate[_ >: String, _ >: Option[VoiceFeatures]] = (_: String, value: Option[VoiceFeatures]) => {
+  val emptyVoiceFeaturesPredicate: Predicate[_ >: String, _ >: Option[ModifyVoiceFeaturesMessage]] = (_: String, value: Option[ModifyVoiceFeaturesMessage]) => {
     value.isEmpty
   }
 
@@ -58,7 +58,7 @@ class KafkaSetup(private val server: String, private val port: String) {
     println("building topology")
     val builder = new StreamsBuilder
 
-    val voiceFeaturesStream: KStream[String, VoiceFeatures] = getVoiceFeaturesStream(inputTopicName, builder)
+    val voiceFeaturesStream: KStream[String, ModifyVoiceFeaturesMessage] = getVoiceFeaturesStream(inputTopicName, builder)
     println("Built the voiceFeaturesStream")
 
     val servicesStream: KStream[String, ServiceDetails] = getServicesStream(servicesTopicName, builder)
@@ -88,11 +88,11 @@ class KafkaSetup(private val server: String, private val port: String) {
     return builder.build()
   }
 
-  def getVoiceFeaturesStream(voiceFeaturesTopicName: String, builder: StreamsBuilder): KStream[String, VoiceFeatures] = {
+  def getVoiceFeaturesStream(voiceFeaturesTopicName: String, builder: StreamsBuilder): KStream[String, ModifyVoiceFeaturesMessage] = {
     val bareInputStream: KStream[String, String] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, stringSerde))
     val validatedInputStream: KStream[String, String] = bareInputStream.filterNot(emptyStringPredicate)
-    val optionalFeaturesStream: KStream[String, VoiceFeatures] = validatedInputStream.mapValues(line => voiceFeaturesParser.parse(line))
-    optionalFeaturesStream.selectKey((k, v) => v.modifyVoiceFeaturesInstruction.serviceId)
+    val optionalFeaturesStream: KStream[String, ModifyVoiceFeaturesMessage] = validatedInputStream.mapValues(line => voiceFeaturesParser.parse(line))
+    optionalFeaturesStream.selectKey((k, v) => v.serviceId)
   }
 
   def getServicesStream(servicesTopicName: String, builder: StreamsBuilder): KStream[String, ServiceDetails] = {

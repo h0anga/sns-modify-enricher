@@ -3,9 +3,9 @@ package sns.lando.modify.enhancer.serdes
 import java.util
 
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
-import sns.lando.modify.enhancer.{VoiceFeatures, VoiceFeaturesParser}
+import sns.lando.modify.enhancer.{ModifyVoiceFeaturesMessage, VoiceFeaturesParser}
 
-class VoiceFeaturesSerde extends Serde[VoiceFeatures] {
+class VoiceFeaturesSerde extends Serde[ModifyVoiceFeaturesMessage] {
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {
 
   }
@@ -14,22 +14,22 @@ class VoiceFeaturesSerde extends Serde[VoiceFeatures] {
 
   }
 
-  override def serializer(): Serializer[VoiceFeatures] = {
+  override def serializer(): Serializer[ModifyVoiceFeaturesMessage] = {
     return new VoiceFeaturesSerializer()
   }
 
-  override def deserializer(): Deserializer[VoiceFeatures] = {
+  override def deserializer(): Deserializer[ModifyVoiceFeaturesMessage] = {
     return new VoiceFeaturesDeserializer()
   }
 }
 
-class VoiceFeaturesSerializer extends Serializer[VoiceFeatures] {
+class VoiceFeaturesSerializer extends Serializer[ModifyVoiceFeaturesMessage] {
   val voiceFeaturesParser = new VoiceFeaturesParser()
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {
 
   }
 
-  override def serialize(topic: String, voiceFeatures: VoiceFeatures): Array[Byte] = {
+  override def serialize(topic: String, voiceFeatures: ModifyVoiceFeaturesMessage): Array[Byte] = {
     return voiceFeaturesParser.parse(voiceFeatures).getBytes
   }
 
@@ -38,13 +38,13 @@ class VoiceFeaturesSerializer extends Serializer[VoiceFeatures] {
   }
 }
 
-class VoiceFeaturesDeserializer extends Deserializer[VoiceFeatures] {
+class VoiceFeaturesDeserializer extends Deserializer[ModifyVoiceFeaturesMessage] {
   val voiceFeaturesParser = new VoiceFeaturesParser()
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {
 
   }
 
-  override def deserialize(topic: String, data: Array[Byte]): VoiceFeatures = {
+  override def deserialize(topic: String, data: Array[Byte]): ModifyVoiceFeaturesMessage = {
     return voiceFeaturesParser.parse(new String(data))
   }
 

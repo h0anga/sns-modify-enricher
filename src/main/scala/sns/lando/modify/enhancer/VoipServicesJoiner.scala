@@ -6,13 +6,13 @@ class VoipServicesJoiner extends ValueJoiner[ModifyVoiceFeaturesMessage, Service
 
   override def apply(voiceFeatures: ModifyVoiceFeaturesMessage, serviceDetails: ServiceDetails): EnrichedInstruction = {
     println("Called the Joiner")
-    val features: Seq[Code] = voiceFeatures.features.FEATURE
+    val features: Seq[Code] = voiceFeatures.FEATURES.FEATURE
 
-    val instruction = EnrichedInstruction(voiceFeatures.operatorId,
-      voiceFeatures.orderId,
-      voiceFeatures.serviceId,
+    val instruction = EnrichedInstruction(voiceFeatures.OPERATOR_ID,
+      voiceFeatures.ORDER_ID,
+      voiceFeatures.SERVICE_ID,
       serviceDetails.directoryNumber,
-      voiceFeatures.operatorOrderId,
+      voiceFeatures.OPERATOR_ORDER_ID,
       features.map(_.CODE))
 
     instruction

@@ -7,12 +7,15 @@ import org.apache.kafka.common.serialization.{Serde, Serdes}
 import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
 import org.apache.kafka.streams.kstream._
 import org.apache.kafka.streams.{KafkaStreams, StreamsBuilder, StreamsConfig, Topology}
-import sns.lando.modify.enhancer.serdes.{ServiceDetailsSerde, VoiceFeaturesSerde}
+import sns.lando.modify.enhancer.serdes.{EnrichedInstructionSerde, ModifyVoiceFeaturesMessageSerde, ServiceDetailsSerde}
 
 
 class KafkaSetup(private val server: String, private val port: String) {
 
   private implicit val stringSerde: Serde[String] = Serdes.String()
+  private implicit val incomingSerde: Serde[ModifyVoiceFeaturesMessage] = new ModifyVoiceFeaturesMessageSerde()
+  private implicit val servicesSerde: Serde[ServiceDetails] = new ServiceDetailsSerde()
+  private implicit val outgoingSerde: Serde[EnrichedInstruction] = new EnrichedInstructionSerde()
 
   private var stream: KafkaStreams = _
 
@@ -41,7 +44,7 @@ class KafkaSetup(private val server: String, private val port: String) {
       settings.put(StreamsConfig.APPLICATION_ID_CONFIG, "sns-modify-enricher")
       settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers)
       settings.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
-      settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
+      settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, outgoingSerde.getClass.getName)
       settings.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, classOf[LogAndContinueExceptionHandler])
       settings
     }
@@ -66,9 +69,9 @@ class KafkaSetup(private val server: String, private val port: String) {
 
     val joiner = new VoipServicesJoiner()
     val oneYearWindow = JoinWindows.of(Duration.ofDays(365))
-    val voiceFeaturesSerde = new VoiceFeaturesSerde()
+    val modifyVoiceFeaturesMessageSerde = new ModifyVoiceFeaturesMessageSerde()
     val serviceDetailsSerde = new ServiceDetailsSerde()
-    val joined = Joined.`with`(stringSerde, voiceFeaturesSerde, serviceDetailsSerde)
+    val joined = Joined.`with`(stringSerde, modifyVoiceFeaturesMessageSerde, serviceDetailsSerde)
 
     val joinedStream: KStream[String, EnrichedInstruction] =
       voiceFeaturesStream.join(servicesStream,
@@ -80,25 +83,27 @@ class KafkaSetup(private val server: String, private val port: String) {
 
     val keyedOutputStream: KStream[String, EnrichedInstruction] = joinedStream.selectKey((k, v) => v.orderId)
 
-    val outputStream: KStream[String, String] = keyedOutputStream.mapValues(mvfi => modifyVoiceFeaturesInstructionSerializer.serialize(mvfi))
-    println("Built the output stream")
+//    val outputStream: KStream[String, String] = keyedOutputStream.mapValues(mvfi => modifyVoiceFeaturesInstructionSerializer.serialize(mvfi))
+//    println("Built the output stream")
 
-    outputStream.to(outputTopicName)
+    keyedOutputStream.to(outputTopicName)
 
     return builder.build()
   }
 
   def getVoiceFeaturesStream(voiceFeaturesTopicName: String, builder: StreamsBuilder): KStream[String, ModifyVoiceFeaturesMessage] = {
-    val bareInputStream: KStream[String, String] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, stringSerde))
-    val validatedInputStream: KStream[String, String] = bareInputStream.filterNot(emptyStringPredicate)
-    val optionalFeaturesStream: KStream[String, ModifyVoiceFeaturesMessage] = validatedInputStream.mapValues(line => voiceFeaturesParser.parse(line))
-    optionalFeaturesStream.selectKey((k, v) => v.serviceId)
+//    val bareInputStream: KStream[String, String] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, stringSerde))
+//    val validatedInputStream: KStream[String, String] = bareInputStream.filterNot(emptyStringPredicate)
+//    val optionalFeaturesStream: KStream[String, ModifyVoiceFeaturesMessage] = validatedInputStream.mapValues(line => voiceFeaturesParser.parse(line))
+    val optionalFeaturesStream: KStream[String, ModifyVoiceFeaturesMessage] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, incomingSerde))
+    optionalFeaturesStream.selectKey((k, v) => v.SERVICE_ID)
   }
 
   def getServicesStream(servicesTopicName: String, builder: StreamsBuilder): KStream[String, ServiceDetails] = {
-    val bareInputStream: KStream[String, String] = builder.stream(servicesTopicName, Consumed.`with`(stringSerde, stringSerde))
-    val validatedInputStream: KStream[String, String] = bareInputStream.filterNot(emptyStringPredicate)
-    val optionalServicesStream: KStream[String, ServiceDetails] = validatedInputStream.mapValues(line => serviceDetailsParser.parse(line))
+//    val bareInputStream: KStream[String, String] = builder.stream(servicesTopicName, Consumed.`with`(stringSerde, stringSerde))
+//    val validatedInputStream: KStream[String, String] = bareInputStream.filterNot(emptyStringPredicate)
+//    val optionalServicesStream: KStream[String, ServiceDetails] = validatedInputStream.mapValues(line => serviceDetailsParser.parse(line))
+    val optionalServicesStream: KStream[String, ServiceDetails] = builder.stream(servicesTopicName, Consumed.`with`(stringSerde, servicesSerde))
     optionalServicesStream.selectKey((k, v) => v.serviceId)
   }
 }

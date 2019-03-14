@@ -8,7 +8,7 @@ class VoiceFeaturesParser {
 
   def parse(textLine: String): ModifyVoiceFeaturesMessage = {
     implicit val formats: Formats = Serialization.formats (NoTypeHints)
-    println(s"Incoming message to parse: ${textLine}")
+    println(s"Incoming unenhanced instruction to parse: ${textLine}")
     read[ModifyVoiceFeaturesMessage](textLine)
   }
 

@@ -5,7 +5,7 @@ import java.util
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import sns.lando.modify.enhancer.{ModifyVoiceFeaturesMessage, VoiceFeaturesParser}
 
-class VoiceFeaturesSerde extends Serde[ModifyVoiceFeaturesMessage] {
+class ModifyVoiceFeaturesMessageSerde extends Serde[ModifyVoiceFeaturesMessage] {
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {
 
   }
@@ -15,15 +15,15 @@ class VoiceFeaturesSerde extends Serde[ModifyVoiceFeaturesMessage] {
   }
 
   override def serializer(): Serializer[ModifyVoiceFeaturesMessage] = {
-    return new VoiceFeaturesSerializer()
+    return new ModifyVoiceFeaturesMessageSerializer()
   }
 
   override def deserializer(): Deserializer[ModifyVoiceFeaturesMessage] = {
-    return new VoiceFeaturesDeserializer()
+    return new ModifyVoiceFeaturesMessageDeserializer()
   }
 }
 
-class VoiceFeaturesSerializer extends Serializer[ModifyVoiceFeaturesMessage] {
+class ModifyVoiceFeaturesMessageSerializer extends Serializer[ModifyVoiceFeaturesMessage] {
   val voiceFeaturesParser = new VoiceFeaturesParser()
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {
 
@@ -38,7 +38,7 @@ class VoiceFeaturesSerializer extends Serializer[ModifyVoiceFeaturesMessage] {
   }
 }
 
-class VoiceFeaturesDeserializer extends Deserializer[ModifyVoiceFeaturesMessage] {
+class ModifyVoiceFeaturesMessageDeserializer extends Deserializer[ModifyVoiceFeaturesMessage] {
   val voiceFeaturesParser = new VoiceFeaturesParser()
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {
 

@@ -1,12 +1,10 @@
 package sns.lando.modify.enhancer
 
-//case class VoiceFeatures (modifyVoiceFeaturesMessage: ModifyVoiceFeaturesMessage)
-
-case class ModifyVoiceFeaturesMessage(operatorId: String,
-                                      orderId: String,
-                                      serviceId: String,
-                                      operatorOrderId: String,
-                                      features: Features)
+case class ModifyVoiceFeaturesMessage(OPERATOR_ID: String,
+                                      ORDER_ID: String,
+                                      SERVICE_ID: String,
+                                      OPERATOR_ORDER_ID: String,
+                                      FEATURES: Features)
 
 case class Features(FEATURE: Seq[Code])
 

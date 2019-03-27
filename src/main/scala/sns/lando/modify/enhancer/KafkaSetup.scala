@@ -3,11 +3,16 @@ package sns.lando.modify.enhancer
 import java.time.Duration
 import java.util.Properties
 
+import brave.Tracing
+import brave.kafka.streams.KafkaStreamsTracing
+import brave.sampler.Sampler
 import org.apache.kafka.common.serialization.{Serde, Serdes}
 import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
 import org.apache.kafka.streams.kstream._
 import org.apache.kafka.streams.{KafkaStreams, StreamsBuilder, StreamsConfig, Topology}
 import sns.lando.modify.enhancer.serdes.{EnrichedInstructionSerde, ModifyVoiceFeaturesMessageSerde, ServiceDetailsSerde}
+import zipkin2.reporter.AsyncReporter
+import zipkin2.reporter.kafka11.KafkaSender
 
 
 class KafkaSetup(private val server: String, private val port: String) {
@@ -18,6 +23,8 @@ class KafkaSetup(private val server: String, private val port: String) {
   private implicit val outgoingSerde: Serde[EnrichedInstruction] = new EnrichedInstructionSerde()
 
   private var stream: KafkaStreams = _
+  private val bootstrapServers = server + ":" + port
+  private val tracing = setupTracing
 
   private val voiceFeaturesParser = new VoiceFeaturesParser()
   private val serviceDetailsParser = new ServiceDetailsParser()
@@ -35,9 +42,15 @@ class KafkaSetup(private val server: String, private val port: String) {
     value.isEmpty
   }
 
+  def setupTracing: KafkaStreamsTracing = {
+    val sender = KafkaSender.newBuilder.bootstrapServers(bootstrapServers).build
+    val reporter = AsyncReporter.builder(sender).build
+    val tracing = Tracing.newBuilder.localServiceName("dn-stream-enhancer").sampler(Sampler.ALWAYS_SAMPLE).spanReporter(reporter).build
+    KafkaStreamsTracing.create(tracing)
+  }
+
   def start(inputTopicName: String, servicesTopicName: String, outputTopicName: String) = {
 
-    val bootstrapServers = server + ":" + port
 
     val streamingConfig = {
       val settings = new Properties
@@ -49,7 +62,7 @@ class KafkaSetup(private val server: String, private val port: String) {
       settings
     }
     val topology = build(inputTopicName, servicesTopicName, outputTopicName)
-    stream = new KafkaStreams(topology, streamingConfig)
+    stream = tracing.kafkaStreams(topology, streamingConfig)
     stream.start()
   }
 

@@ -8,7 +8,7 @@ object ModifyEnhancerApp extends App {
 
   private val modifyMessagesTopic = "RAW_VOIP_INSTRUCTIONS"
   private val servicesTopic = "services"
-  private val enrichedModifyTopic = "enriched.modification.instructions.with.service"
+  private val enrichedModifyTopic = "enriched.modification.instructions.with.dn"
 
   val kafkaSetup = new KafkaSetup(kafkabroker, kafkabrokerPort)
   kafkaSetup.start(modifyMessagesTopic, servicesTopic, enrichedModifyTopic)

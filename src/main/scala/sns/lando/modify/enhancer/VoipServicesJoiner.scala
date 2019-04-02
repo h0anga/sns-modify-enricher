@@ -9,7 +9,9 @@ class VoipServicesJoiner extends ValueJoiner[ModifyVoiceFeaturesMessage, Service
     val features: Seq[Code] = voiceFeatures.FEATURES
     val codes: Seq[String] = features.map(f => f.code)
 
-    val instruction = EnrichedInstruction(voiceFeatures.OPERATOR_ID,
+    val instruction = EnrichedInstruction(
+      voiceFeatures.TRACE_ID,
+      voiceFeatures.OPERATOR_ID,
       voiceFeatures.ORDER_ID,
       voiceFeatures.SERVICE_ID,
       serviceDetails.directoryNumber,

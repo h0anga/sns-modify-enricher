@@ -4,7 +4,12 @@ version := "0.1.1"
 
 scalaVersion := "2.12.8"
 
-libraryDependencies += "org.apache.kafka" %% "kafka-streams-scala" % "2.1.0"
+resolvers += "Maven Repository" at "https://mvnrepository.com/artifact/"
+resolvers += "Confluent Maven Repository" at "http://packages.confluent.io/maven/"
+
+libraryDependencies += "org.apache.kafka" %% "kafka-streams-scala" % "2.2.0"
+libraryDependencies += "org.apache.kafka" % "kafka-clients" % "2.2.0"
+libraryDependencies += "io.confluent" % "monitoring-interceptors" % "5.2.1"
 libraryDependencies += "org.json4s" %% "json4s-native" % "3.6.3"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"

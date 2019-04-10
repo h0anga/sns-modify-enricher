@@ -6,6 +6,8 @@ import java.util.Properties
 import brave.Tracing
 import brave.kafka.streams.KafkaStreamsTracing
 import brave.sampler.Sampler
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{Serde, Serdes}
 import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
 import org.apache.kafka.streams.kstream._
@@ -59,6 +61,8 @@ class KafkaSetup(private val server: String, private val port: String) {
       settings.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String.getClass.getName)
       settings.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, outgoingSerde.getClass.getName)
       settings.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, classOf[LogAndContinueExceptionHandler])
+      settings.put(StreamsConfig.PRODUCER_PREFIX + ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor")
+      settings.put(StreamsConfig.CONSUMER_PREFIX + ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG, "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor")
       settings
     }
     val topology = build(inputTopicName, servicesTopicName, outputTopicName)

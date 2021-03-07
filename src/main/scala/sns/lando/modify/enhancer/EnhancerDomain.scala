@@ -1,11 +1,22 @@
 package sns.lando.modify.enhancer
 
-case class ModifyVoiceFeaturesMessage(TRACE_ID: String,
-                                      OPERATOR_ID: String,
-                                      ORDER_ID: String,
-                                      SERVICE_ID: String,
-                                      OPERATOR_ORDER_ID: String,
-                                      FEATURES: Seq[Code])
+case class InValue(transaction:  Transaction,
+                       traceId: String)
+
+case class Transaction(operatorId:  String,
+                       receivedDate: String,
+                       instruction: Instruction)
+
+case class Instruction(order: Order,
+                       modifyFeaturesInstruction: ModifyFeaturesInstruction)
+
+case class Order(operatorNotes: String,
+                 orderId: String)
+
+case class ModifyFeaturesInstruction(serviceId: String,
+                                     features: Features)
+
+case class Features(feature: Seq[Code])
 
 case class Code(code: String)
 
@@ -16,6 +27,5 @@ case class EnrichedInstruction(traceId: String,
                                orderId: String,
                                serviceId: String,
                                directoryNumber: String,
-                               operatorOrderId: String,
                                features: Seq[String])
 

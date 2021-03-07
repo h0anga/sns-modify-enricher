@@ -18,7 +18,7 @@ import zipkin2.reporter.kafka11.KafkaSender
 class KafkaSetup(private val server: String, private val port: String) {
 
   private implicit val stringSerde: Serde[String] = Serdes.String()
-  private implicit val incomingSerde: Serde[ModifyVoiceFeaturesMessage] = new ModifyVoiceFeaturesMessageSerde()
+  private implicit val incomingSerde: Serde[InValue] = new ModifyVoiceFeaturesMessageSerde()
   private implicit val servicesSerde: Serde[ServiceDetails] = new ServiceDetailsSerde()
   private implicit val outgoingSerde: Serde[EnrichedInstruction] = new EnrichedInstructionSerde()
 
@@ -34,7 +34,7 @@ class KafkaSetup(private val server: String, private val port: String) {
     value.isEmpty
   }
 
-  val emptyVoiceFeaturesPredicate: Predicate[_ >: String, _ >: Option[ModifyVoiceFeaturesMessage]] = (_: String, value: Option[ModifyVoiceFeaturesMessage]) => {
+  val emptyVoiceFeaturesPredicate: Predicate[_ >: String, _ >: Option[Transaction]] = (_: String, value: Option[Transaction]) => {
     value.isEmpty
   }
 
@@ -73,8 +73,8 @@ class KafkaSetup(private val server: String, private val port: String) {
   def build(inputTopicName: String, servicesTopicName: String, outputTopicName: String): Topology = {
     println("building topology")
     val builder = new StreamsBuilder
-
-    val voiceFeaturesStream: KStream[String, ModifyVoiceFeaturesMessage] = getVoiceFeaturesStream(inputTopicName, builder)
+/*
+    val voiceFeaturesStream: KStream[String, Transaction] = getVoiceFeaturesStream(inputTopicName, builder)
     println("Built the voiceFeaturesStream")
 
     val servicesStream: KStream[String, ServiceDetails] = getServicesStream(servicesTopicName, builder)
@@ -96,20 +96,25 @@ class KafkaSetup(private val server: String, private val port: String) {
 
     val keyedOutputStream: KStream[String, EnrichedInstruction] = joinedStream.selectKey((k, v) => v.orderId)
 
-//    val outputStream: KStream[String, String] = keyedOutputStream.mapValues(mvfi => modifyVoiceFeaturesInstructionSerializer.serialize(mvfi))
-//    println("Built the output stream")
+    val outputStream: KStream[String, String] = keyedOutputStream.mapValues(mvfi =>
+      modifyVoiceFeaturesInstructionSerializer.serialize(mvfi))
+    println("Built the output stream")
 
-    keyedOutputStream.to(outputTopicName)
-
-    return builder.build()
+   outputStream.to(outputTopicName)
+//    voiceFeaturesStream.to(outputTopicName)
+*/
+//    builder.stream(inputTopicName, Consumed.`with`(stringSerde, incomingSerde))
+//      .mapValues(line => voiceFeaturesParser.parse(line))
+//      .to(outputTopicName)
+    builder.build()
   }
 
-  def getVoiceFeaturesStream(voiceFeaturesTopicName: String, builder: StreamsBuilder): KStream[String, ModifyVoiceFeaturesMessage] = {
+  def getVoiceFeaturesStream(voiceFeaturesTopicName: String, builder: StreamsBuilder): KStream[String, InValue] = {
 //    val bareInputStream: KStream[String, String] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, stringSerde))
 //    val validatedInputStream: KStream[String, String] = bareInputStream.filterNot(emptyStringPredicate)
 //    val optionalFeaturesStream: KStream[String, ModifyVoiceFeaturesMessage] = validatedInputStream.mapValues(line => voiceFeaturesParser.parse(line))
-    val optionalFeaturesStream: KStream[String, ModifyVoiceFeaturesMessage] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, incomingSerde))
-    optionalFeaturesStream.selectKey((k, v) => v.SERVICE_ID)
+    val optionalFeaturesStream: KStream[String, InValue] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, incomingSerde))
+    optionalFeaturesStream.selectKey((k, v) => v.transaction.instruction.modifyFeaturesInstruction.serviceId)
   }
 
   def getServicesStream(servicesTopicName: String, builder: StreamsBuilder): KStream[String, ServiceDetails] = {

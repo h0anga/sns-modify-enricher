@@ -36,10 +36,42 @@ class KafkaSetupSpec extends AnyFlatSpec with Matchers {
 
   private val kafkaMessageInValue =
     s"""
-      |{"modifyVoiceFeaturesInstruction":{"operatorId":"sky","orderId":"$orderId","serviceId":"31642339","operatorOrderId":"SogeaVoipModify_YHUORO","features":["CallerDisplay","RingBack","ChooseToRefuse"]}}
+      {
+       |  "transaction":{
+       |    "operatorIssuedDate":"2011-06-01T09:51:12",
+       |    "operatorTransactionId":"op_trans_id_095025_228",
+       |    "operatorId":"sky",
+       |    "receivedDate":"2018-11-15T10:29:07",
+       |    "instruction":{
+       |      "type":"PlaceOrder",
+       |      "version":"1",
+       |      "order":{
+       |        "type":"modify",
+       |        "operatorOrderId":"SogeaVoipModify_YHUORO",
+       |        "operatorNotes":"Test: notes",
+       |        "orderId":"$orderId"
+       |      },
+       |      "modifyFeaturesInstruction":{
+       |        "operatorNotes":"Test: addThenRemoveStaticIpToAnFttcService",
+       |        "operatorOrderId":"SogeaVoipModify_YHUORO",
+       |        "serviceId":"31642339",
+       |        "features":{
+       |          "feature":[{
+       |            "code":"CallerDisplay"
+       |          },{
+       |            "code":"RingBack"
+       |          },{
+       |            "code":"ChooseToRefuse"
+       |          }]
+       |        }
+       |      }
+       |    }
+       |  },
+       |  "traceId":"792dd3058e223dbb"
+       |}
     """.stripMargin
 
-  private val kafkaServicesValue = s"""{"SERVICE_ID":31642339,"SERVICE_SPEC_CODE":"VoipService","DIRECTORY_NUMBER":"01202000095"}"""
+  private val kafkaServicesValue = s"""{"serviceId":31642339,"serviceSpecCode":"VoipService","directoryNumber":"01202000095"}"""
 
   private val expectedOutput =
     s"""

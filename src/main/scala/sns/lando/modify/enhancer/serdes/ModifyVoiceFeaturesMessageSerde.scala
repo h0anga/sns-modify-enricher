@@ -1,11 +1,10 @@
 package sns.lando.modify.enhancer.serdes
 
 import java.util
-
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
-import sns.lando.modify.enhancer.{ModifyVoiceFeaturesMessage, VoiceFeaturesParser}
+import sns.lando.modify.enhancer.{InValue, VoiceFeaturesParser}
 
-class ModifyVoiceFeaturesMessageSerde extends Serde[ModifyVoiceFeaturesMessage] {
+class ModifyVoiceFeaturesMessageSerde extends Serde[InValue] {
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {
 
   }
@@ -14,22 +13,22 @@ class ModifyVoiceFeaturesMessageSerde extends Serde[ModifyVoiceFeaturesMessage] 
 
   }
 
-  override def serializer(): Serializer[ModifyVoiceFeaturesMessage] = {
+  override def serializer(): Serializer[InValue] = {
     return new ModifyVoiceFeaturesMessageSerializer()
   }
 
-  override def deserializer(): Deserializer[ModifyVoiceFeaturesMessage] = {
-    return new ModifyVoiceFeaturesMessageDeserializer()
+  override def deserializer(): Deserializer[InValue] = {
+    return new TransactionDeserializer()
   }
 }
 
-class ModifyVoiceFeaturesMessageSerializer extends Serializer[ModifyVoiceFeaturesMessage] {
+class ModifyVoiceFeaturesMessageSerializer extends Serializer[InValue] {
   val voiceFeaturesParser = new VoiceFeaturesParser()
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {
 
   }
 
-  override def serialize(topic: String, voiceFeatures: ModifyVoiceFeaturesMessage): Array[Byte] = {
+  override def serialize(topic: String, voiceFeatures: InValue): Array[Byte] = {
     return voiceFeaturesParser.parse(voiceFeatures).getBytes
   }
 
@@ -38,13 +37,13 @@ class ModifyVoiceFeaturesMessageSerializer extends Serializer[ModifyVoiceFeature
   }
 }
 
-class ModifyVoiceFeaturesMessageDeserializer extends Deserializer[ModifyVoiceFeaturesMessage] {
+class TransactionDeserializer extends Deserializer[InValue] {
   val voiceFeaturesParser = new VoiceFeaturesParser()
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {
 
   }
 
-  override def deserialize(topic: String, data: Array[Byte]): ModifyVoiceFeaturesMessage = {
+  override def deserialize(topic: String, data: Array[Byte]): InValue = {
     return voiceFeaturesParser.parse(new String(data))
   }
 

@@ -1,16 +1,16 @@
 package sns.lando.modify.enhancer
 
 import java.util.{Properties, UUID}
-
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{Serde, Serdes}
 import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
 import org.apache.kafka.streams.test.ConsumerRecordFactory
 import org.apache.kafka.streams.{StreamsConfig, TopologyTestDriver}
-import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class KafkaSetupSpec extends FlatSpec with Matchers {
+class KafkaSetupSpec extends AnyFlatSpec with Matchers {
   private val kafkaApplicationId = "sns-modify-enricher"
   private val serverName = "serverName"
   private val portNumber = "portNumber"
@@ -59,13 +59,16 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
     val keySerde: Serde[String] = Serdes.String
     val valueSerde: Serde[String] = Serdes.String
 
-    val servicesConsumerRecordFactory: ConsumerRecordFactory[String, String] = new ConsumerRecordFactory[String, String](servicesTopic, keySerde.serializer(), valueSerde.serializer())
+    val servicesConsumerRecordFactory: ConsumerRecordFactory[String, String] =
+      new ConsumerRecordFactory[String, String](servicesTopic, keySerde.serializer(), valueSerde.serializer())
     val servicesKafkaRecord: ConsumerRecord[Array[Byte], Array[Byte]] = servicesConsumerRecordFactory.create(servicesTopic, kafkaServicesKey, kafkaServicesValue)
     val inputConsumerRecordFactory: ConsumerRecordFactory[String, String] = new ConsumerRecordFactory[String, String](inputTopic, keySerde.serializer(), valueSerde.serializer())
     val inputKafkaRecord: ConsumerRecord[Array[Byte], Array[Byte]] = inputConsumerRecordFactory.create(inputTopic, kafkaMessageInKey, kafkaMessageInValue)
     topologyTestDriver.pipeInput(inputKafkaRecord)
 
-    val outputKafkaRecord: ProducerRecord[String, String] = topologyTestDriver.readOutput(outputTopic, keySerde.deserializer(), valueSerde.deserializer())
+    val outputKafkaRecord: ProducerRecord[String, String] = topologyTestDriver.readOutput(
+      outputTopic, keySerde.deserializer(),
+      valueSerde.deserializer())
     val outputValue = outputKafkaRecord.value()
 
     outputValue.trim shouldEqual (expectedOutput.trim)
@@ -86,5 +89,4 @@ class KafkaSetupSpec extends FlatSpec with Matchers {
     if (outputKafkaRecord != null)
       fail("Got a message from a poison pill")
   }
-
 }

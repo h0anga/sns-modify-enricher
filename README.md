@@ -3,7 +3,15 @@ This application *can* be run standalone, but is intended to be used as a Docker
 ##Local
 
 1) Ensure you have minikube and kubectl installed.
-2) Start minikube
+2) Start minikube 
+/*
+Start a cluster using the virtualbox driver:
+
+minikube start --driver=virtualbox
+To make virtualbox the default driver:
+
+minikube config set driver virtualbox
+*/
 
 3) You will need to expose a port from the host where kafka is running, so that
 this application, running within a minikube pod, will be able to access it.

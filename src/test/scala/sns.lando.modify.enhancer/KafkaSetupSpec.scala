@@ -1,14 +1,16 @@
 package sns.lando.modify.enhancer
 
-import java.util.{Properties, UUID}
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.{Serde, Serdes}
 import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
-import org.apache.kafka.streams.test.ConsumerRecordFactory
-import org.apache.kafka.streams.{StreamsConfig, TopologyTestDriver}
+import org.apache.kafka.streams.test.{ConsumerRecordFactory}
+import org.apache.kafka.streams.{StreamsConfig, TestInputTopic, TestOutputTopic, TopologyTestDriver}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import sns.lando.modify.enhancer.serdes.{EnrichedInstructionSerde, TransactionSerde}
+
+import java.util.{Properties, UUID}
 
 class KafkaSetupSpec extends AnyFlatSpec with Matchers {
   private val kafkaApplicationId = "sns-modify-enricher"
@@ -35,12 +37,8 @@ class KafkaSetupSpec extends AnyFlatSpec with Matchers {
   private val orderId = UUID.randomUUID().toString
 
   private val kafkaMessageInValue = s"""{"transaction":{"operatorId":"sky","receivedDate":"2018-11-15T10:29:07","instruction":{"order":{"operatorNotes":"Test: notes","orderId":"$orderId"},"modifyFeaturesInstruction":{"serviceId":"31642339","features":{"feature":[{"code":"CallerDisplay"},{"code":"RingBack"},{"code":"ChooseToRefuse"}]}}}},"traceId":"792dd3058e223dbb"}"""
-  private val kafkaServicesValue = s"""{"serviceId":31642339,"serviceSpecCode":"VoipService","directoryNumber":"01202000095"}"""
-
-  private val expectedOutput =
-    s"""
-      |{"modifyVoiceFeaturesInstruction":{"operatorId":"sky","orderId":"$orderId","serviceId":"31642339","operatorOrderId":"SogeaVoipModify_YHUORO","features":["CallerDisplay","RingBack","ChooseToRefuse"]}}
-    """.stripMargin
+  private val kafkaServicesValue = s"""{"serviceId":"31642339","serviceSpecCode":"VoipService","directoryNumber":"01202000095"}"""
+  private val expectedOutput = s"""{"enrichedInstruction":{"traceId":"792dd3058e223dbb","operatorId":"sky","orderId":"$orderId","serviceId":"flhtd","directoryNumber":"0707790432","features":["CallerDisplay","RingBack","ChooseToRefuse"]}}"""
 
   private def createTopologyToTest = {
     val kafkaSetup = new KafkaSetup(serverName, portNumber)
@@ -55,19 +53,20 @@ class KafkaSetupSpec extends AnyFlatSpec with Matchers {
     val keySerde: Serde[String] = Serdes.String
     val valueSerde: Serde[String] = Serdes.String
 
-    val servicesConsumerRecordFactory: ConsumerRecordFactory[String, String] =
-      new ConsumerRecordFactory[String, String](servicesTopic, keySerde.serializer(), valueSerde.serializer())
-    val servicesKafkaRecord: ConsumerRecord[Array[Byte], Array[Byte]] = servicesConsumerRecordFactory.create(servicesTopic, kafkaServicesKey, kafkaServicesValue)
-    val inputConsumerRecordFactory: ConsumerRecordFactory[String, String] = new ConsumerRecordFactory[String, String](inputTopic, keySerde.serializer(), valueSerde.serializer())
-    val inputKafkaRecord: ConsumerRecord[Array[Byte], Array[Byte]] = inputConsumerRecordFactory.create(inputTopic, kafkaMessageInKey, kafkaMessageInValue)
-    topologyTestDriver.pipeInput(inputKafkaRecord)
+    implicit val incomingSerde: Serde[Transaction] = new TransactionSerde()
+    implicit val outputSerde: Serde[EnrichedInstruction] = new EnrichedInstructionSerde()
 
-    val outputKafkaRecord: ProducerRecord[String, String] = topologyTestDriver.readOutput(
-      outputTopic, keySerde.deserializer(),
-      valueSerde.deserializer())
-    val outputValue = outputKafkaRecord.value()
+    val testInputTopic: TestInputTopic[String, String] = topologyTestDriver.createInputTopic(inputTopic, keySerde.serializer(), valueSerde.serializer())
+    testInputTopic.pipeInput(kafkaMessageInKey, kafkaMessageInValue)
 
-    outputValue.trim shouldEqual (expectedOutput.trim)
+    val testServiceTopic: TestInputTopic[String, String] = topologyTestDriver.createInputTopic(servicesTopic, keySerde.serializer(), valueSerde.serializer())
+    testServiceTopic.pipeInput(kafkaServicesKey, kafkaServicesValue)
+
+    val testOutputTopic: TestOutputTopic[String, String] = topologyTestDriver.createOutputTopic(outputTopic, keySerde.deserializer(), valueSerde.deserializer())
+    val outputValue = testOutputTopic.readValue()
+
+    outputValue shouldEqual expectedOutput
+    //outputValue.trim shouldEqual (expectedOutput.trim)
   }
 
   it should "spit out poison pills" in {

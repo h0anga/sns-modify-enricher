@@ -3,7 +3,7 @@ package sns.lando.modify.enhancer.serdes
 import java.util
 
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
-import sns.lando.modify.enhancer.{EnrichedInstruction, EnrichedInstructionParser, ModifyVoiceFeaturesMessage, VoiceFeaturesParser}
+import sns.lando.modify.enhancer.{EnrichedInstruction, EnrichedInstructionParser}
 
 class EnrichedInstructionSerde extends Serde[EnrichedInstruction] {
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {

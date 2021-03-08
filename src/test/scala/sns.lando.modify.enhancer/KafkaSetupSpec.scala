@@ -34,43 +34,7 @@ class KafkaSetupSpec extends AnyFlatSpec with Matchers {
 
   private val orderId = UUID.randomUUID().toString
 
-  private val kafkaMessageInValue =
-    s"""
-      {
-       |  "transaction":{
-       |    "operatorIssuedDate":"2011-06-01T09:51:12",
-       |    "operatorTransactionId":"op_trans_id_095025_228",
-       |    "operatorId":"sky",
-       |    "receivedDate":"2018-11-15T10:29:07",
-       |    "instruction":{
-       |      "type":"PlaceOrder",
-       |      "version":"1",
-       |      "order":{
-       |        "type":"modify",
-       |        "operatorOrderId":"SogeaVoipModify_YHUORO",
-       |        "operatorNotes":"Test: notes",
-       |        "orderId":"$orderId"
-       |      },
-       |      "modifyFeaturesInstruction":{
-       |        "operatorNotes":"Test: addThenRemoveStaticIpToAnFttcService",
-       |        "operatorOrderId":"SogeaVoipModify_YHUORO",
-       |        "serviceId":"31642339",
-       |        "features":{
-       |          "feature":[{
-       |            "code":"CallerDisplay"
-       |          },{
-       |            "code":"RingBack"
-       |          },{
-       |            "code":"ChooseToRefuse"
-       |          }]
-       |        }
-       |      }
-       |    }
-       |  },
-       |  "traceId":"792dd3058e223dbb"
-       |}
-    """.stripMargin
-
+  private val kafkaMessageInValue = s"""{"transaction":{"operatorId":"sky","receivedDate":"2018-11-15T10:29:07","instruction":{"order":{"operatorNotes":"Test: notes","orderId":"$orderId"},"modifyFeaturesInstruction":{"serviceId":"31642339","features":{"feature":[{"code":"CallerDisplay"},{"code":"RingBack"},{"code":"ChooseToRefuse"}]}}}},"traceId":"792dd3058e223dbb"}"""
   private val kafkaServicesValue = s"""{"serviceId":31642339,"serviceSpecCode":"VoipService","directoryNumber":"01202000095"}"""
 
   private val expectedOutput =

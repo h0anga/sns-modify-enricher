@@ -18,7 +18,7 @@ import zipkin2.reporter.kafka11.KafkaSender
 class KafkaSetup(private val server: String, private val port: String) {
 
   private implicit val stringSerde: Serde[String] = Serdes.String()
-  private implicit val incomingSerde: Serde[InValue] = new ModifyVoiceFeaturesMessageSerde()
+  private implicit val incomingSerde: Serde[Transaction] = new ModifyVoiceFeaturesMessageSerde()
   private implicit val servicesSerde: Serde[ServiceDetails] = new ServiceDetailsSerde()
   private implicit val outgoingSerde: Serde[EnrichedInstruction] = new EnrichedInstructionSerde()
 
@@ -109,12 +109,12 @@ class KafkaSetup(private val server: String, private val port: String) {
     builder.build()
   }
 
-  def getVoiceFeaturesStream(voiceFeaturesTopicName: String, builder: StreamsBuilder): KStream[String, InValue] = {
+  def getVoiceFeaturesStream(voiceFeaturesTopicName: String, builder: StreamsBuilder): KStream[String, Transaction] = {
 //    val bareInputStream: KStream[String, String] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, stringSerde))
 //    val validatedInputStream: KStream[String, String] = bareInputStream.filterNot(emptyStringPredicate)
 //    val optionalFeaturesStream: KStream[String, ModifyVoiceFeaturesMessage] = validatedInputStream.mapValues(line => voiceFeaturesParser.parse(line))
-    val optionalFeaturesStream: KStream[String, InValue] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, incomingSerde))
-    optionalFeaturesStream.selectKey((k, v) => v.transaction.instruction.modifyFeaturesInstruction.serviceId)
+    val optionalFeaturesStream: KStream[String, Transaction] = builder.stream(voiceFeaturesTopicName, Consumed.`with`(stringSerde, incomingSerde))
+    optionalFeaturesStream.selectKey((k, v) => v.instruction.modifyFeaturesInstruction.serviceId)
   }
 
   def getServicesStream(servicesTopicName: String, builder: StreamsBuilder): KStream[String, ServiceDetails] = {

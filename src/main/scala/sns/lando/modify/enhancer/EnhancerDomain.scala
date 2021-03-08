@@ -1,13 +1,11 @@
 package sns.lando.modify.enhancer
 
-case class InValue(transaction:  Transaction,
+case class Transaction(instruction: Instruction,
                        traceId: String)
 
-case class Transaction(operatorId:  String,
+case class Instruction(operatorId:  String,
                        receivedDate: String,
-                       instruction: Instruction)
-
-case class Instruction(order: Order,
+                       order: Order,
                        modifyFeaturesInstruction: ModifyFeaturesInstruction)
 
 case class Order(operatorNotes: String,

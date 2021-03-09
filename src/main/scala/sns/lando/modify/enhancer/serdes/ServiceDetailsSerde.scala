@@ -1,7 +1,6 @@
 package sns.lando.modify.enhancer.serdes
 
 import java.util
-
 import org.apache.kafka.common.serialization.{Deserializer, Serde, Serializer}
 import sns.lando.modify.enhancer.{ServiceDetails, ServiceDetailsParser}
 
@@ -17,7 +16,6 @@ class ServiceDetailsSerde extends Serde[ServiceDetails] {
 
 class ServiceDetailsSerializer() extends Serializer[ServiceDetails] {
   val serviceDetailsParser = new ServiceDetailsParser()
-
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {}
 
   override def serialize(topic: String, data: ServiceDetails): Array[Byte] = serviceDetailsParser.parse(data).getBytes()
@@ -27,7 +25,6 @@ class ServiceDetailsSerializer() extends Serializer[ServiceDetails] {
 
 class ServiceDetailsDeserializer() extends Deserializer[ServiceDetails] {
   val serviceDetailsParser = new ServiceDetailsParser()
-
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {}
 
   override def deserialize(topic: String, data: Array[Byte]): ServiceDetails = serviceDetailsParser.parse(new String(data))

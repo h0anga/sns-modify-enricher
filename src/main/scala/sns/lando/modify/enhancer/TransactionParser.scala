@@ -8,13 +8,13 @@ class TransactionParser {
 
   def parse(textLine: String): Transaction = {
     implicit val formats: Formats = Serialization.formats (ShortTypeHints(List(classOf[String])))
-    println(s"Incoming unenhanced transaction to parse: ${textLine}")
+    println(s"Incoming transaction to parse: ${textLine}")
     read[Transaction](textLine)
   }
 
-  def parse(voiceFeatures: Transaction): String = {
+  def parse(transaction: Transaction): String = {
     implicit val formats: Formats = Serialization.formats (ShortTypeHints(List(classOf[String])))
     println("Unparsing a Transaction")
-    write(voiceFeatures)
+    write(transaction)
   }
 }

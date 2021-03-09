@@ -7,7 +7,7 @@ import org.json4s.{Formats, NoTypeHints}
 
 class EnrichedInstructionSerializer {
   def serialize(instruction: EnrichedInstruction) : String = {
-    println("Called the MVFI Serializer")
+    println("Called the EnrichedInstruction Serializer")
     implicit val formats: Formats = Serialization.formats (NoTypeHints)
     s"""{"enrichedInstruction":${write(instruction)}}"""
   }

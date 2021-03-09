@@ -18,7 +18,7 @@ class TransactionSerializer extends Serializer[Transaction] {
   val transactionParser = new TransactionParser()
   override def configure(configs: util.Map[String, _], isKey: Boolean): Unit = {}
 
-  override def serialize(topic: String, transaction: Transaction): Array[Byte] = transactionParser.parse(transaction).getBytes
+  override def serialize(topic: String, data: Transaction): Array[Byte] = transactionParser.parse(data).getBytes()
 
   override def close(): Unit = {}
 }

@@ -13,8 +13,8 @@ libraryDependencies += "org.json4s" %% "json4s-native" % "3.6.6"
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging"  % "3.9.2"
 
 libraryDependencies ++= Seq(
-  "io.zipkin.brave" % "brave-instrumentation-kafka-clients" % "5.10.0",
-  "io.zipkin.brave" % "brave-instrumentation-kafka-streams" % "5.10.0",
+  "io.zipkin.brave" % "brave-instrumentation-kafka-clients" % "5.13.3",
+  "io.zipkin.brave" % "brave-instrumentation-kafka-streams" % "5.13.3",
   "io.zipkin.reporter2" % "zipkin-sender-kafka11" % "2.8.2"
 )
 
